@@ -1,0 +1,12 @@
+# Fin de línea LF en el repositorio y en el árbol de trabajo (consistente con Docker/Linux)
+* text=auto eol=lf
+
+# Binarios: nunca convertir
+*.pdf binary
+*.png binary
+*.jpg binary
+*.jpeg binary
+*.gif binary
+*.ico binary
+*.woff binary
+*.woff2 binary
