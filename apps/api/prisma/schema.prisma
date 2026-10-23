@@ -1,0 +1,442 @@
+// Esquema de datos de la Plataforma Eléctricos SEC.
+// Los enums deben coincidir con packages/shared/src/enums.ts.
+
+generator client {
+  provider      = "prisma-client-js"
+  binaryTargets = ["native", "linux-musl-openssl-3.0.x"]
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+enum Rol {
+  ELECTRICO
+  ADMIN
+  ASESOR
+}
+
+enum EstadoUsuario {
+  PENDIENTE
+  APROBADO
+  RECHAZADO
+  SUSPENDIDO
+}
+
+enum ClaseLicencia {
+  A
+  B
+  C
+  D
+}
+
+enum EstadoProyecto {
+  BORRADOR
+  EN_DESARROLLO
+  LISTO_PARA_DECLARAR
+  DECLARADO
+}
+
+enum CategoriaDocumento {
+  PLANO
+  MEMORIA_CALCULO
+  FOTOGRAFIA
+  TABLA
+  CERTIFICADO
+  OTRO
+}
+
+enum EsquemaRevision {
+  LETRAS
+  NUMEROS
+}
+
+enum CategoriaNormativa {
+  PLIEGO_RIC
+  REGLAMENTO
+  NORMA
+  INSTRUCTIVO
+  GUIA
+}
+
+enum TipoMaterial {
+  VIDEO
+  DOCUMENTO
+  ENLACE
+}
+
+enum CategoriaMaterial {
+  TUTORIAL
+  NORMATIVA
+  WEBINAR
+  CASO_PRACTICO
+}
+
+enum EstadoSolicitudExtension {
+  PENDIENTE
+  APROBADA
+  RECHAZADA
+}
+
+enum TipoNotificacion {
+  INFO
+  EXITO
+  ALERTA
+}
+
+// ─────────────── Usuarios y acceso ───────────────
+
+model User {
+  id                       String         @id @default(uuid())
+  nombreCompleto           String
+  /// Normalizado: "12345678-5"
+  rut                      String         @unique
+  /// En minúsculas
+  email                    String         @unique
+  /// argon2id
+  passwordHash             String
+  rol                      Rol            @default(ELECTRICO)
+  estado                   EstadoUsuario  @default(PENDIENTE)
+  licenciaSecNumero        String?
+  licenciaSecClase         ClaseLicencia?
+  telefono                 String?
+  comuna                   String?
+  /// Motivo del último rechazo o suspensión
+  motivoRechazo            String?
+  estadoActualizadoAt      DateTime?
+  preferenciasNotificacion Json?
+  /// Consentimiento de tratamiento de datos personales (Ley 19.628)
+  consentimientoAt         DateTime
+  consentimientoVersion    String
+  createdAt                DateTime       @default(now())
+  updatedAt                DateTime       @updatedAt
+
+  certificados          CertificadoSec[]     @relation("certificadoUsuario")
+  certificadosValidados CertificadoSec[]     @relation("certificadoValidador")
+  proyectos             Proyecto[]
+  revisionesSubidas     RevisionDocumento[]
+  solicitudes           SolicitudExtension[] @relation("solicitante")
+  solicitudesResueltas  SolicitudExtension[] @relation("resolutor")
+  refreshTokens         RefreshToken[]
+  resetTokens           PasswordResetToken[]
+  notificaciones        Notificacion[]
+  auditLogs             AuditLog[]
+
+  @@index([estado, rol])
+}
+
+model CertificadoSec {
+  id             String    @id @default(uuid())
+  usuarioId      String
+  usuario        User      @relation("certificadoUsuario", fields: [usuarioId], references: [id], onDelete: Cascade)
+  objectKey      String
+  nombreOriginal String
+  mimeType       String
+  tamano         Int
+  sha256         String
+  cargadoAt      DateTime  @default(now())
+  validadoPorId  String?
+  validadoPor    User?     @relation("certificadoValidador", fields: [validadoPorId], references: [id], onDelete: SetNull)
+  validadoAt     DateTime?
+
+  @@index([usuarioId])
+}
+
+model RefreshToken {
+  id        String    @id @default(uuid())
+  usuarioId String
+  usuario   User      @relation(fields: [usuarioId], references: [id], onDelete: Cascade)
+  tokenHash String    @unique
+  /// Al reutilizar un token ya rotado se revoca toda la familia (detección de robo)
+  familia   String
+  expiresAt DateTime
+  revokedAt DateTime?
+  ip        String?
+  userAgent String?
+  createdAt DateTime  @default(now())
+
+  @@index([usuarioId])
+  @@index([familia])
+}
+
+model PasswordResetToken {
+  id        String    @id @default(uuid())
+  usuarioId String
+  usuario   User      @relation(fields: [usuarioId], references: [id], onDelete: Cascade)
+  tokenHash String    @unique
+  expiresAt DateTime
+  usedAt    DateTime?
+  createdAt DateTime  @default(now())
+
+  @@index([usuarioId])
+}
+
+model Notificacion {
+  id        String           @id @default(uuid())
+  usuarioId String
+  usuario   User             @relation(fields: [usuarioId], references: [id], onDelete: Cascade)
+  tipo      TipoNotificacion
+  titulo    String
+  mensaje   String
+  enlace    String?
+  leida     Boolean          @default(false)
+  createdAt DateTime         @default(now())
+
+  @@index([usuarioId, leida])
+}
+
+// ─────────────── Catálogo TE ───────────────
+
+model TipoTE {
+  id                   String               @id @default(uuid())
+  /// "TE1"
+  codigo               String               @unique
+  nombre               String
+  descripcion          String
+  activo               Boolean              @default(true)
+  orden                Int                  @default(0)
+  /// "Contenido referencial a validar"
+  referencial          Boolean              @default(true)
+  createdAt            DateTime             @default(now())
+  updatedAt            DateTime             @updatedAt
+  documentosRequeridos DocumentoRequerido[]
+  guia                 GuiaDeclaracion[]
+  requisitos           RequisitoTE[]
+  proyectos            Proyecto[]
+  normativa            DocumentoNormativo[]
+  material             MaterialApoyo[]
+}
+
+model DocumentoRequerido {
+  id          String             @id @default(uuid())
+  tipoTEId    String
+  tipoTE      TipoTE             @relation(fields: [tipoTEId], references: [id], onDelete: Cascade)
+  nombre      String
+  categoria   CategoriaDocumento
+  obligatorio Boolean            @default(true)
+  descripcion String?
+  orden       Int                @default(0)
+  documentos  Documento[]
+
+  @@index([tipoTEId])
+}
+
+/// Un registro por paso de la guía de declaración del TipoTE.
+model GuiaDeclaracion {
+  id          String               @id @default(uuid())
+  tipoTEId    String
+  tipoTE      TipoTE               @relation(fields: [tipoTEId], references: [id], onDelete: Cascade)
+  orden       Int
+  titulo      String
+  descripcion String
+  normativa   DocumentoNormativo[]
+
+  @@index([tipoTEId])
+}
+
+/// Checklist de requisitos de la pestaña "Apoyo al eléctrico".
+model RequisitoTE {
+  id         String              @id @default(uuid())
+  tipoTEId   String
+  tipoTE     TipoTE              @relation(fields: [tipoTEId], references: [id], onDelete: Cascade)
+  texto      String
+  orden      Int                 @default(0)
+  cumplidoEn ProyectoRequisito[]
+
+  @@index([tipoTEId])
+}
+
+// ─────────────── Proyectos y control documental ───────────────
+
+model Proyecto {
+  id               String              @id @default(uuid())
+  /// "PRY-2026-001", generado por la API
+  codigo           String              @unique
+  propietarioId    String
+  propietario      User                @relation(fields: [propietarioId], references: [id])
+  tipoTEId         String
+  tipoTE           TipoTE              @relation(fields: [tipoTEId], references: [id], onDelete: Restrict)
+  nombre           String
+  descripcion      String?
+  clienteNombre    String
+  clienteRut       String?
+  clienteEmail     String?
+  clienteTelefono  String?
+  direccion        String
+  comuna           String
+  region           String
+  potenciaKw       Decimal             @db.Decimal(10, 2)
+  estado           EstadoProyecto      @default(BORRADOR)
+  folioSec         String?
+  fechaDeclaracion DateTime?
+  /// Borrado lógico: se conserva la trazabilidad de auditoría
+  eliminadoAt      DateTime?
+  createdAt        DateTime            @default(now())
+  updatedAt        DateTime            @updatedAt
+  documentos       Documento[]
+  requisitos       ProyectoRequisito[]
+
+  @@index([propietarioId, estado])
+  @@index([tipoTEId])
+}
+
+model ProyectoRequisito {
+  proyectoId  String
+  proyecto    Proyecto    @relation(fields: [proyectoId], references: [id], onDelete: Cascade)
+  requisitoId String
+  requisito   RequisitoTE @relation(fields: [requisitoId], references: [id], onDelete: Cascade)
+  marcadoAt   DateTime    @default(now())
+
+  @@id([proyectoId, requisitoId])
+}
+
+model Documento {
+  id                   String              @id @default(uuid())
+  proyectoId           String
+  proyecto             Proyecto            @relation(fields: [proyectoId], references: [id], onDelete: Cascade)
+  nombre               String
+  categoria            CategoriaDocumento
+  documentoRequeridoId String?
+  documentoRequerido   DocumentoRequerido? @relation(fields: [documentoRequeridoId], references: [id], onDelete: SetNull)
+  esquemaRevision      EsquemaRevision     @default(LETRAS)
+  createdAt            DateTime            @default(now())
+  updatedAt            DateTime            @updatedAt
+  revisiones           RevisionDocumento[]
+
+  @@index([proyectoId])
+}
+
+/// Una sola revisión vigente por documento: índice único parcial creado en la migración inicial.
+model RevisionDocumento {
+  id             String    @id @default(uuid())
+  documentoId    String
+  documento      Documento @relation(fields: [documentoId], references: [id], onDelete: Cascade)
+  /// "A", "B"… o "0", "1"…
+  codigo         String
+  comentario     String
+  objectKey      String
+  nombreOriginal String
+  mimeType       String
+  tamano         Int
+  sha256         String
+  subidoPorId    String
+  subidoPor      User      @relation(fields: [subidoPorId], references: [id])
+  esVigente      Boolean   @default(false)
+  createdAt      DateTime  @default(now())
+
+  @@unique([documentoId, codigo])
+  @@index([documentoId])
+}
+
+// ─────────────── Aprendizaje ───────────────
+
+model DocumentoNormativo {
+  id             String             @id @default(uuid())
+  /// "RIC N°04"
+  numero         String
+  titulo         String
+  descripcion    String
+  categoria      CategoriaNormativa
+  version        String
+  fecha          DateTime
+  objectKey      String
+  nombreOriginal String
+  mimeType       String
+  tamano         Int
+  referencial    Boolean            @default(true)
+  createdAt      DateTime           @default(now())
+  updatedAt      DateTime           @updatedAt
+  tiposTE        TipoTE[]
+  pasosGuia      GuiaDeclaracion[]
+
+  @@index([categoria])
+}
+
+model MaterialApoyo {
+  id             String            @id @default(uuid())
+  titulo         String
+  descripcion    String
+  tipo           TipoMaterial
+  categoria      CategoriaMaterial
+  /// YouTube, Vimeo u otro enlace
+  url            String?
+  /// Archivo propio (alternativa a url)
+  objectKey      String?
+  nombreOriginal String?
+  mimeType       String?
+  tamano         Int?
+  duracionSeg    Int?
+  autor          String?
+  publicadoAt    DateTime          @default(now())
+  createdAt      DateTime          @default(now())
+  updatedAt      DateTime          @updatedAt
+  tiposTE        TipoTE[]
+  adjuntos       ArchivoMaterial[]
+}
+
+model ArchivoMaterial {
+  id             String        @id @default(uuid())
+  materialId     String
+  material       MaterialApoyo @relation(fields: [materialId], references: [id], onDelete: Cascade)
+  objectKey      String
+  nombreOriginal String
+  mimeType       String
+  tamano         Int
+
+  @@index([materialId])
+}
+
+// ─────────────── Extensiones ───────────────
+
+model Extension {
+  id               String               @id @default(uuid())
+  /// conductores | caida-tension | cortocircuito | alumbrado
+  slug             String               @unique
+  nombre           String
+  descripcionCorta String
+  descripcion      String
+  caracteristicas  String[]
+  disponible       Boolean              @default(true)
+  orden            Int                  @default(0)
+  solicitudes      SolicitudExtension[]
+}
+
+model SolicitudExtension {
+  id            String                   @id @default(uuid())
+  usuarioId     String
+  usuario       User                     @relation("solicitante", fields: [usuarioId], references: [id], onDelete: Cascade)
+  extensionId   String
+  extension     Extension                @relation(fields: [extensionId], references: [id], onDelete: Cascade)
+  estado        EstadoSolicitudExtension @default(PENDIENTE)
+  comentario    String?
+  /// Motivo de rechazo
+  motivo        String?
+  resueltoPorId String?
+  resueltoPor   User?                    @relation("resolutor", fields: [resueltoPorId], references: [id], onDelete: SetNull)
+  resueltoAt    DateTime?
+  createdAt     DateTime                 @default(now())
+
+  @@index([usuarioId, extensionId])
+  @@index([estado])
+}
+
+// ─────────────── Auditoría ───────────────
+
+model AuditLog {
+  id        String   @id @default(uuid())
+  usuarioId String?
+  usuario   User?    @relation(fields: [usuarioId], references: [id], onDelete: SetNull)
+  /// USUARIO_APROBADO, REVISION_SUBIDA, PROYECTO_ESTADO_CAMBIADO, EXTENSION_APROBADA, CONTENIDO_ACTUALIZADO…
+  accion    String
+  entidad   String
+  entidadId String
+  detalle   Json?
+  ip        String?
+  userAgent String?
+  createdAt DateTime @default(now())
+
+  @@index([entidad, entidadId])
+  @@index([usuarioId])
+  @@index([createdAt])
+}

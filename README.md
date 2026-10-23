@@ -2,40 +2,55 @@
 
 Plataforma web para **instaladores eléctricos autorizados por la SEC (Chile)**: gestión de proyectos y su control documental por tipo de declaración TE, biblioteca normativa (pliegos técnicos RIC), asesorías con profesionales y herramientas de cálculo.
 
-> **Fase 1 — Maqueta navegable.** No hay backend: los datos son simulados (`src/mocks`) y los servicios (`src/services`) exponen la misma interfaz asíncrona que tendrá la API real. Las acciones de la demo (aprobar usuarios, subir revisiones, agendar reuniones…) se guardan en el `localStorage` del navegador.
+> **Fase 2 en curso — backend real.** El repositorio es un monorepo: `apps/web` (frontend), `apps/api` (NestJS + PostgreSQL + Prisma + almacenamiento S3) y `packages/shared` (tipos y validaciones compartidas). Mientras avanzan las etapas, el frontend sigue usando datos simulados (`apps/web/src/mocks`); los módulos se irán conectando a la API.
 >
 > El contenido normativo (tipos TE, pliegos RIC, guías de declaración) es **referencial y debe ser validado** contra las publicaciones oficiales de la SEC.
 
 ## Stack
 
-- React 18 + TypeScript + Vite 5
-- Tailwind CSS 3 · lucide-react
-- React Router 6 (data router, rutas protegidas por rol)
-- Nginx (servir la SPA) · Docker
+- **Web:** React 18 + TypeScript + Vite 5 · Tailwind CSS 3 · React Router 6
+- **API:** NestJS 11 · Prisma 6 · PostgreSQL 16 · almacenamiento compatible con S3 (MinIO en local) · Swagger
+- **Infraestructura:** Docker Compose (Postgres, MinIO, Mailpit), Nginx
 
 ## Requisitos
 
-- Node.js 20 LTS o superior (probado con Node 24) y npm 10+
-- Docker 24+ y Docker Compose v2 (solo para ejecución con contenedores)
+- Node.js 20.11+ (probado con Node 24) y npm 10+
+- Docker 24+ y Docker Compose v2
 
-## Instalación y ejecución local
+## Desarrollo local
 
 ```bash
 npm install
-cp .env.example .env      # opcional en la Fase 1
-npm run dev               # http://localhost:5173
+cp apps/api/.env.example apps/api/.env     # completa JWT_ACCESS_SECRET, SEED_ADMIN_PASSWORD y SEED_DEMO_PASSWORD
+cp apps/web/.env.example apps/web/.env
+
+npm run infra:up       # Postgres :5432 · MinIO :9000 (consola :9001) · Mailpit :8025
+npm run db:deploy      # aplica las migraciones
+npm run db:seed        # admin inicial + catálogo de ejemplo + datos demo
+npm run dev            # API http://localhost:3000/api (Swagger /api/docs) · Web http://localhost:5173
 ```
 
-| Script | Descripción |
+| Script (raíz) | Descripción |
 |---|---|
-| `npm run dev` | Servidor de desarrollo con recarga en caliente |
-| `npm run build` | Verificación de tipos (`tsc -b`) y build de producción en `dist/` |
-| `npm run preview` | Sirve el build de producción localmente |
-| `npm run lint` | ESLint |
+| `npm run dev` | shared (watch) + API (watch) + web (Vite) en paralelo |
+| `npm run build` | Build de shared, API y web |
+| `npm run lint` / `npm test` | Lint y pruebas de todos los workspaces |
+| `npm run infra:up` / `infra:down` | Levanta o detiene Postgres, MinIO y Mailpit |
+| `npm run db:migrate` | Crea y aplica una nueva migración (desarrollo) |
+| `npm run db:deploy` | Aplica migraciones pendientes |
+| `npm run db:seed` | Ejecuta el seed (idempotente) |
+| `npm run db:reset` | **Borra** la base, reaplica migraciones y ejecuta el seed |
+| `npm run db:studio` | Prisma Studio |
+
+API y web también en contenedores: `docker compose --profile apps up -d --build` (web en http://localhost:8080).
+
+> MinIO dejó de publicar imágenes oficiales en Docker Hub; el entorno de desarrollo usa la build comunitaria `pgsty/minio`. En producción se recomienda un servicio S3 gestionado (AWS S3, Cloudflare R2, etc.).
 
 ## Usuarios demo
 
-En la pantalla de inicio de sesión hay **accesos rápidos** que completan las credenciales. Contraseña de todas las cuentas: `demo1234`.
+**Frontend (mientras los módulos no estén conectados a la API):** en la pantalla de inicio de sesión hay **accesos rápidos** que completan las credenciales. Contraseña de todas las cuentas: `demo1234`.
+
+**Base de datos (seed de la API):** las mismas cuentas existen en Postgres. El admin usa `SEED_ADMIN_EMAIL` / `SEED_ADMIN_PASSWORD` y los usuarios demo `SEED_DEMO_PASSWORD`, todos definidos en `apps/api/.env`.
 
 | Perfil | Correo | RUT | Para probar |
 |---|---|---|---|
@@ -47,39 +62,11 @@ Otros usuarios de ejemplo (rechazado, suspendido, pendientes) aparecen en **Admi
 
 Para volver al estado inicial: menú de usuario → **Restablecer datos demo**.
 
-## Ejecución con Docker
+## Despliegue
 
-```bash
-docker compose up -d --build     # http://localhost:8080
-docker compose logs -f web
-docker compose down
-```
+El despliegue productivo (`docker-compose.prod.yml` con Nginx como reverse proxy, migraciones automáticas y respaldos) se documenta al cerrar la Fase 2 (etapa e).
 
-Variables opcionales (en `.env` o en el entorno):
-
-| Variable | Por defecto | Uso |
-|---|---|---|
-| `PUERTO_WEB` | `8080` | Puerto publicado en el host |
-| `VITE_API_URL` | `http://localhost:3000/api` | URL de la API (Fase 2). Se incrusta en el build |
-| `VITE_USE_MOCKS` | `true` | Usar datos simulados |
-
-La imagen es multietapa: compila con `node:20-alpine` y sirve `dist/` con `nginx:1.27-alpine`. `nginx.conf` incluye el *fallback* de SPA (`try_files … /index.html`), compresión gzip, caché larga para `/assets/` y un endpoint de salud en `/healthz`.
-
-## Despliegue en la nube
-
-Cualquier VM con Docker (AWS EC2/Lightsail, Google Compute Engine, Azure VM, DigitalOcean, etc.):
-
-```bash
-git clone <url-del-repositorio> && cd plataforma-electricos-sec
-echo "PUERTO_WEB=80" > .env
-docker compose up -d --build
-```
-
-Recomendaciones:
-
-- Poner delante un proxy con TLS (Caddy, Traefik o Nginx + Let's Encrypt) o el balanceador del proveedor.
-- Alternativa sin servidor: subir `dist/` a un hosting estático (S3 + CloudFront, Azure Static Web Apps, Netlify) configurando la reescritura de todas las rutas a `/index.html`.
-- `VITE_*` se fijan **en tiempo de build**; para otro entorno, reconstruye la imagen con el `--build-arg` correspondiente.
+> Si la maqueta de la Fase 1 está publicada en un hosting estático (Vercel, Netlify…), cambia su *root directory* a `apps/web` y el comando de build a `npm run build -w @electricos/web` (con instalación desde la raíz del repositorio).
 
 ## Mapa de rutas
 
