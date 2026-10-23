@@ -3,6 +3,7 @@
  * Fuente única para StatusBadge, filtros y selects.
  */
 import type { BadgeColor } from '@/components/ui/Badge';
+import type { DisponibilidadAsesor, EstadoReunion } from '@/types/asesoria';
 import type { EstadoExtension } from '@/types/extension';
 import type { EstadoProyecto } from '@/types/proyecto';
 import type { EstadoUsuario } from '@/types/usuario';
@@ -36,10 +37,24 @@ export const estadosProyecto: Record<EstadoProyecto, InfoEstado> = {
 /** Orden del flujo de un proyecto. */
 export const flujoProyecto: EstadoProyecto[] = ['borrador', 'en_desarrollo', 'listo_para_declarar', 'declarado'];
 
+export const estadosReunion: Record<EstadoReunion, InfoEstado> = {
+  agendada: { label: 'Agendada', color: 'blue' },
+  finalizada: { label: 'Finalizada', color: 'green' },
+  cancelada: { label: 'Cancelada', color: 'gray' },
+};
+
+export const disponibilidadAsesor: Record<DisponibilidadAsesor, InfoEstado> = {
+  disponible: { label: 'Disponible', color: 'green' },
+  pocos_cupos: { label: 'Pocos cupos', color: 'yellow' },
+  sin_cupos: { label: 'Sin cupos', color: 'gray' },
+};
+
 export const dominiosEstado = {
   usuario: estadosUsuario,
   extension: estadosExtension,
   proyecto: estadosProyecto,
+  reunion: estadosReunion,
+  disponibilidad: disponibilidadAsesor,
 };
 
 export type DominioEstado = keyof typeof dominiosEstado;

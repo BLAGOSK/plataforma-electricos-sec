@@ -21,7 +21,16 @@ import { BibliotecaPage } from '@/features/aprendizaje/pages/BibliotecaPage';
 import { PliegoDetallePage } from '@/features/aprendizaje/pages/PliegoDetallePage';
 import { VideoDetallePage } from '@/features/aprendizaje/pages/VideoDetallePage';
 import { VideosPage } from '@/features/aprendizaje/pages/VideosPage';
+import { AgendarPage } from '@/features/asesorias/pages/AgendarPage';
+import { AsesorPerfilPage } from '@/features/asesorias/pages/AsesorPerfilPage';
+import { CalificarAsesoriaPage } from '@/features/asesorias/pages/CalificarAsesoriaPage';
+import { ChatPage } from '@/features/asesorias/pages/ChatPage';
+import { DirectorioPage } from '@/features/asesorias/pages/DirectorioPage';
+import { MisReunionesPage } from '@/features/asesorias/pages/MisReunionesPage';
+import { SolicitarAsesoriaPage } from '@/features/asesorias/pages/SolicitarAsesoriaPage';
+import { VideollamadaPage } from '@/features/asesorias/pages/VideollamadaPage';
 import { aprendizajeService } from '@/services/aprendizajeService';
+import { asesoriasService } from '@/services/asesoriasService';
 import { documentosService } from '@/services/documentosService';
 import { proyectosService } from '@/services/proyectosService';
 import { ProtectedRoute, PublicOnlyRoute, SessionRoute } from './ProtectedRoute';
@@ -92,11 +101,39 @@ const rutasAsesorias: RouteObject = {
   path: 'asesorias',
   handle: h('Asesorías'),
   children: [
-    { index: true, element: pendiente('Directorio de asesores') },
-    { path: 'asesores/:id/*', handle: h('Asesor'), element: pendiente('Perfil del asesor') },
-    { path: 'reuniones/*', handle: h('Mis reuniones'), element: pendiente('Mis reuniones') },
-    { path: 'chat/*', handle: h('Mensajes'), element: pendiente('Mensajes') },
-    { path: 'videollamada/:reunionId', handle: h('Videollamada'), element: pendiente('Videollamada') },
+    { index: true, element: <DirectorioPage /> },
+    { path: 'asesores', element: <Navigate to="/asesorias" replace /> },
+    {
+      path: 'asesores/:id',
+      handle: h((p) => <AsyncCrumb key={p.id} cargar={() => asesoriasService.obtenerAsesor(p.id!).then((a) => a.nombre)} />),
+      children: [
+        { index: true, element: <AsesorPerfilPage /> },
+        { path: 'solicitar', handle: h('Solicitar asesoría'), element: <SolicitarAsesoriaPage /> },
+        { path: 'agendar', handle: h('Agendar reunión'), element: <AgendarPage /> },
+      ],
+    },
+    {
+      path: 'reuniones',
+      handle: h('Mis reuniones'),
+      children: [
+        { index: true, element: <MisReunionesPage /> },
+        { path: ':id', element: <Navigate to="/asesorias/reuniones" replace /> },
+        { path: ':id/calificar', handle: h('Calificar asesoría'), element: <CalificarAsesoriaPage /> },
+      ],
+    },
+    {
+      path: 'chat',
+      handle: h('Mensajes'),
+      children: [
+        { index: true, element: <ChatPage /> },
+        { path: ':conversacionId', element: <ChatPage /> },
+      ],
+    },
+    {
+      path: 'videollamada/:reunionId',
+      handle: h('Videollamada'),
+      element: <VideollamadaPage />,
+    },
   ],
 };
 

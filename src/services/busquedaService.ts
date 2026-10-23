@@ -3,7 +3,7 @@ import type { Usuario } from '@/types/usuario';
 import { coincide } from '@/utils/texto';
 import { delay } from './mockDelay';
 
-export type GrupoBusqueda = 'Proyectos' | 'Normativa' | 'Videos' | 'Páginas' | 'Usuarios';
+export type GrupoBusqueda = 'Proyectos' | 'Normativa' | 'Videos' | 'Asesores' | 'Páginas' | 'Usuarios';
 
 export interface ResultadoBusqueda {
   id: string;
@@ -70,6 +70,11 @@ export const busquedaService = {
       .slice(0, LIMITE_POR_GRUPO)
       .map((v) => ({ id: v.id, grupo: 'Videos', titulo: v.titulo, subtitulo: v.autor, to: `/aprendizaje/videos/${v.id}` }));
 
-    return [...resProyectos, ...resNormativa, ...resVideos, ...resPaginas, ...resUsuarios];
+    const resAsesores: ResultadoBusqueda[] = db.asesores
+      .filter((a) => a.activo && coincide(consulta, a.nombre, a.titulo, a.especialidades.join(' ')))
+      .slice(0, LIMITE_POR_GRUPO)
+      .map((a) => ({ id: a.id, grupo: 'Asesores', titulo: a.nombre, subtitulo: a.especialidades.join(' · '), to: `/asesorias/asesores/${a.id}` }));
+
+    return [...resProyectos, ...resNormativa, ...resVideos, ...resAsesores, ...resPaginas, ...resUsuarios];
   },
 };
