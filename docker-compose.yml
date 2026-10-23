@@ -1,33 +1,107 @@
+# Entorno de DESARROLLO.
+#   Infraestructura:   docker compose up -d            (postgres, minio, mailpit)
+#   + api y web:       docker compose --profile apps up -d --build
+# Producción: ver docker-compose.prod.yml
+
+name: electricos-sec
+
+x-minio-image: &minio-image pgsty/minio:RELEASE.2026-08-04T00-00-00Z
+
 services:
-  web:
+  postgres:
+    image: postgres:16-alpine
+    environment:
+      POSTGRES_DB: electricos
+      POSTGRES_USER: electricos
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:-electricos_dev}
+    ports:
+      - "${POSTGRES_PORT:-5432}:5432"
+    volumes:
+      - pgdata:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U electricos -d electricos"]
+      interval: 5s
+      timeout: 3s
+      retries: 20
+
+  # MinIO (build comunitaria: las imágenes oficiales ya no se publican en Docker Hub)
+  minio:
+    image: *minio-image
+    command: server /data --console-address ":9001"
+    environment:
+      MINIO_ROOT_USER: ${MINIO_ROOT_USER:-electricos}
+      MINIO_ROOT_PASSWORD: ${MINIO_ROOT_PASSWORD:-electricos_minio_dev}
+    ports:
+      - "9000:9000" # API S3
+      - "9001:9001" # consola web
+    volumes:
+      - minio-data:/data
+    healthcheck:
+      test: ["CMD", "mc", "ready", "local"]
+      interval: 5s
+      timeout: 5s
+      retries: 20
+
+  # Crea el bucket privado al iniciar (idempotente)
+  minio-init:
+    image: *minio-image
+    depends_on:
+      minio:
+        condition: service_healthy
+    entrypoint: ["/bin/sh", "-c"]
+    command:
+      - >
+        mc alias set local http://minio:9000 "$${MINIO_ROOT_USER}" "$${MINIO_ROOT_PASSWORD}" &&
+        mc mb --ignore-existing "local/$${S3_BUCKET}" &&
+        mc anonymous set none "local/$${S3_BUCKET}" &&
+        echo "Bucket $${S3_BUCKET} listo (privado)"
+    environment:
+      MINIO_ROOT_USER: ${MINIO_ROOT_USER:-electricos}
+      MINIO_ROOT_PASSWORD: ${MINIO_ROOT_PASSWORD:-electricos_minio_dev}
+      S3_BUCKET: ${S3_BUCKET:-electricos-sec}
+    restart: "no"
+
+  # Bandeja de correo de desarrollo: http://localhost:8025
+  mailpit:
+    image: axllent/mailpit:v1.21
+    ports:
+      - "8025:8025" # interfaz web
+      - "1025:1025" # SMTP
+
+  # ── Perfil "apps": api y web en contenedores ──────────────
+  api:
+    profiles: ["apps"]
     build:
       context: .
-      dockerfile: Dockerfile
-      args:
-        VITE_API_URL: ${VITE_API_URL:-http://localhost:3000/api}
-        VITE_USE_MOCKS: ${VITE_USE_MOCKS:-true}
-    image: plataforma-electricos-sec:latest
-    container_name: plataforma-electricos-sec
+      dockerfile: apps/api/Dockerfile
+    env_file: apps/api/.env
+    environment:
+      DATABASE_URL: postgresql://electricos:${POSTGRES_PASSWORD:-electricos_dev}@postgres:5432/electricos?schema=public
+      S3_ENDPOINT: http://minio:9000
+      S3_PUBLIC_ENDPOINT: http://localhost:9000
+      SMTP_HOST: mailpit
+      SMTP_PORT: "1025"
+      WEB_URL: http://localhost:${WEB_PORT:-8080}
     ports:
-      - "${PUERTO_WEB:-8080}:80"
-    restart: unless-stopped
+      - "${API_PORT:-3000}:3000"
+    depends_on:
+      postgres:
+        condition: service_healthy
+      minio-init:
+        condition: service_completed_successfully
 
-  # Fase 2: descomentar cuando exista la API y la base de datos.
-  # api:
-  #   image: plataforma-electricos-sec-api:latest
-  #   env_file: .env
-  #   ports:
-  #     - "3000:3000"
-  #   depends_on:
-  #     - db
-  # db:
-  #   image: postgres:16-alpine
-  #   environment:
-  #     POSTGRES_DB: electricos_sec
-  #     POSTGRES_USER: ${DB_USER:-electricos}
-  #     POSTGRES_PASSWORD: ${DB_PASSWORD:?Define DB_PASSWORD en .env}
-  #   volumes:
-  #     - db-data:/var/lib/postgresql/data
+  web:
+    profiles: ["apps"]
+    build:
+      context: .
+      dockerfile: apps/web/Dockerfile
+      args:
+        VITE_API_URL: http://localhost:${API_PORT:-3000}/api
+    ports:
+      - "${WEB_PORT:-8080}:80"
+    depends_on:
+      - api
 
-# volumes:
-#   db-data:
+volumes:
+  pgdata:
+  minio-data:

@@ -8,6 +8,12 @@ export function limpiarRut(rut: string): string {
   return rut.replace(/[^0-9kK]/g, '').toUpperCase();
 }
 
+/** Forma canónica para almacenar y comparar: "12345678-5" (sin puntos, DV en mayúscula). */
+export function normalizarRut(rut: string): string {
+  const limpio = limpiarRut(rut);
+  return `${limpio.slice(0, -1)}-${limpio.slice(-1)}`;
+}
+
 export function calcularDv(cuerpo: string): string {
   let suma = 0;
   let multiplo = 2;

@@ -1,13 +1,14 @@
 # CLAUDE.md — Convenciones del proyecto
 
-Plataforma web para instaladores eléctricos SEC (Chile). Fase actual: **maqueta navegable sin backend** (ver `docs/ROADMAP.md`).
+Plataforma web para instaladores eléctricos SEC (Chile). Fase actual: **Fase 2 — backend real** (ver `docs/ROADMAP.md`). Monorepo con npm workspaces: `apps/web`, `apps/api`, `packages/shared`.
 
-## Comandos
+## Comandos (desde la raíz)
 
-- `npm run dev` — desarrollo (http://localhost:5173)
-- `npm run build` — `tsc -b` + build de Vite. **Debe pasar sin errores antes de cada commit.**
-- `npm run lint` — ESLint (0 errores)
-- `docker compose up -d --build` — imagen Nginx en http://localhost:8080
+- `npm run infra:up` — Postgres, MinIO y Mailpit en Docker
+- `npm run dev` — shared + API (:3000) + web (:5173) en paralelo
+- `npm run build` · `npm run lint` · `npm test` — **deben pasar sin errores antes de cada commit**
+- `npm run db:migrate` (nueva migración) · `db:deploy` · `db:seed` · `db:reset`
+- Las convenciones del frontend de abajo aplican a `apps/web`; las del backend se documentan al cerrar la etapa b).
 
 ## Arquitectura
 

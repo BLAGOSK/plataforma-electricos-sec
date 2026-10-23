@@ -20,7 +20,8 @@
     "noFallthroughCasesInSwitch": true,
 
     "paths": {
-      "@/*": ["./src/*"]
+      "@/*": ["./src/*"],
+      "@electricos/shared": ["../../packages/shared/src/index.ts"]
     }
   },
   "include": ["src"]

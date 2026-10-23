@@ -1,0 +1,21 @@
+{
+  "name": "@electricos/shared",
+  "version": "0.2.0",
+  "private": true,
+  "description": "Tipos, enums y validaciones compartidas entre apps/web y apps/api",
+  "main": "dist/index.js",
+  "types": "dist/index.d.ts",
+  "files": [
+    "dist"
+  ],
+  "scripts": {
+    "build": "tsc -p tsconfig.build.json",
+    "dev": "tsc -p tsconfig.build.json --watch --preserveWatchOutput",
+    "lint": "tsc -p tsconfig.json --noEmit",
+    "test": "vitest run"
+  },
+  "devDependencies": {
+    "typescript": "~5.6.3",
+    "vitest": "^2.1.8"
+  }
+}
