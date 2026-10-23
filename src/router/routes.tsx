@@ -29,7 +29,14 @@ import { DirectorioPage } from '@/features/asesorias/pages/DirectorioPage';
 import { MisReunionesPage } from '@/features/asesorias/pages/MisReunionesPage';
 import { SolicitarAsesoriaPage } from '@/features/asesorias/pages/SolicitarAsesoriaPage';
 import { VideollamadaPage } from '@/features/asesorias/pages/VideollamadaPage';
+import { ConfiguracionLayout } from '@/features/configuracion/pages/ConfiguracionLayout';
+import { NotificacionesPage } from '@/features/configuracion/pages/NotificacionesPage';
+import { PasswordPage } from '@/features/configuracion/pages/PasswordPage';
+import { PerfilPage } from '@/features/configuracion/pages/PerfilPage';
+import { CatalogoPage } from '@/features/extensiones/pages/CatalogoPage';
+import { ExtensionHostPage } from '@/features/extensiones/pages/ExtensionHostPage';
 import { aprendizajeService } from '@/services/aprendizajeService';
+import { extensionesService } from '@/services/extensionesService';
 import { asesoriasService } from '@/services/asesoriasService';
 import { documentosService } from '@/services/documentosService';
 import { proyectosService } from '@/services/proyectosService';
@@ -141,17 +148,24 @@ const rutasExtensiones: RouteObject = {
   path: 'extensiones',
   handle: h('Extensiones'),
   children: [
-    { index: true, element: pendiente('Catálogo de extensiones') },
-    { path: ':slug', handle: h('Herramienta'), element: pendiente('Extensión') },
+    { index: true, element: <CatalogoPage /> },
+    {
+      path: ':slug',
+      element: <ExtensionHostPage />,
+      handle: h((p) => <AsyncCrumb key={p.slug} cargar={() => extensionesService.obtenerPorSlug(p.slug!).then((e) => e.nombre)} />),
+    },
   ],
 };
 
 const rutasConfiguracion: RouteObject = {
   path: 'configuracion',
+  element: <ConfiguracionLayout />,
   handle: h('Configuración'),
   children: [
     { index: true, element: <Navigate to="perfil" replace /> },
-    { path: '*', element: pendiente('Configuración') },
+    { path: 'perfil', handle: h('Perfil'), element: <PerfilPage /> },
+    { path: 'password', handle: h('Contraseña'), element: <PasswordPage /> },
+    { path: 'notificaciones', handle: h('Notificaciones'), element: <NotificacionesPage /> },
   ],
 };
 

@@ -1,5 +1,5 @@
 import { db, guardarDb, nuevoId } from '@/mocks/db';
-import type { ExtensionConEstado, ExtensionSlug, SolicitudExtension } from '@/types/extension';
+import type { Extension, ExtensionConEstado, ExtensionSlug, SolicitudExtension } from '@/types/extension';
 import { emitirCambio } from './eventos';
 import { clonar, delay, ServiceError } from './mockDelay';
 import { notificacionesService } from './notificacionesService';
@@ -32,6 +32,13 @@ export const extensionesService = {
   async obtenerParaUsuario(usuarioId: string, slug: ExtensionSlug): Promise<ExtensionConEstado> {
     await delay(150);
     const ext = conEstado(usuarioId).find((e) => e.slug === slug);
+    if (!ext) throw new ServiceError('Extensión no encontrada', 404);
+    return clonar(ext);
+  },
+
+  async obtenerPorSlug(slug: string): Promise<Extension> {
+    await delay(80);
+    const ext = db.extensiones.find((e) => e.slug === slug);
     if (!ext) throw new ServiceError('Extensión no encontrada', 404);
     return clonar(ext);
   },
