@@ -22,6 +22,7 @@ const tamanos: Record<ButtonSize, string> = {
   icon: 'h-9 w-9 justify-center',
 };
 
+// eslint-disable-next-line react-refresh/only-export-components
 export function buttonClasses(variant: ButtonVariant = 'primary', size: ButtonSize = 'md', extra?: string) {
   return cn(
     'inline-flex items-center justify-center rounded-lg font-medium transition-colors disabled:pointer-events-none disabled:opacity-50 whitespace-nowrap',

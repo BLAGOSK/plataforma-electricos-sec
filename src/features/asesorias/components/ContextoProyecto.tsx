@@ -4,6 +4,7 @@ import { useAsync } from '@/hooks/useAsync';
 import { proyectosService } from '@/services/proyectosService';
 
 /** Lee ?proyecto=id: la asesoría se solicita desde un proyecto. */
+// eslint-disable-next-line react-refresh/only-export-components
 export function useProyectoContexto() {
   const [params, setParams] = useSearchParams();
   const proyectoId = params.get('proyecto') ?? '';

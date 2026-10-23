@@ -9,6 +9,17 @@ export default defineConfig({
       '@': fileURLToPath(new URL('./src', import.meta.url)),
     },
   },
+  build: {
+    rollupOptions: {
+      output: {
+        // Dependencias en un chunk propio (cambian menos que el código de la app y se cachean mejor)
+        manualChunks: {
+          react: ['react', 'react-dom', 'react-router-dom'],
+          iconos: ['lucide-react'],
+        },
+      },
+    },
+  },
   server: {
     port: 5173,
     host: true,

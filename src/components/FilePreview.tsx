@@ -4,6 +4,7 @@ import { archivoDisponible, descargarArchivo, esImagen, esPdf } from '@/services
 import { cn } from '@/utils/cn';
 import { formatBytes } from '@/utils/format';
 
+// eslint-disable-next-line react-refresh/only-export-components
 export function iconoArchivo(tipoMime: string, nombre = ''): LucideIcon {
   if (esImagen(tipoMime)) return FileImage;
   if (esPdf(tipoMime)) return FileText;

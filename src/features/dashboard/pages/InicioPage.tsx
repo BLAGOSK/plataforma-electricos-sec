@@ -2,6 +2,7 @@ import { Link } from 'react-router-dom';
 import { ArrowRight, FolderKanban, GraduationCap, Plus, Puzzle, ShieldCheck, Users, type LucideIcon } from 'lucide-react';
 import { useAuth, useUsuario } from '@/features/auth/context/AuthContext';
 import { ButtonLink, Card } from '@/components/ui';
+import { ResumenActividad } from '../components/ResumenActividad';
 
 interface Acceso {
   titulo: string;
@@ -85,6 +86,8 @@ export function InicioPage() {
           </div>
         </div>
       </div>
+
+      <ResumenActividad />
 
       <div className="grid gap-4 sm:grid-cols-2 xl:grid-cols-4">
         {accesos.map(({ titulo, descripcion, to, icon: Icon, color }) => (

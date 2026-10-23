@@ -2,7 +2,6 @@ import { createBrowserRouter, Navigate, type RouteObject } from 'react-router-do
 import { AppLayout } from '@/layouts/AppLayout';
 import { AuthLayout } from '@/layouts/AuthLayout';
 import { NotFoundPage } from '@/components/NotFoundPage';
-import { Proximamente } from '@/components/Proximamente';
 import { RouteError } from '@/components/RouteError';
 import { LoginPage } from '@/features/auth/pages/LoginPage';
 import { PendienteValidacionPage } from '@/features/auth/pages/PendienteValidacionPage';
@@ -35,6 +34,14 @@ import { PasswordPage } from '@/features/configuracion/pages/PasswordPage';
 import { PerfilPage } from '@/features/configuracion/pages/PerfilPage';
 import { CatalogoPage } from '@/features/extensiones/pages/CatalogoPage';
 import { ExtensionHostPage } from '@/features/extensiones/pages/ExtensionHostPage';
+import { AdminDashboardPage } from '@/features/admin/pages/AdminDashboardPage';
+import { AsesoresAdminPage } from '@/features/admin/pages/AsesoresAdminPage';
+import { ContenidosPage } from '@/features/admin/pages/ContenidosPage';
+import { SolicitudesExtensionesPage } from '@/features/admin/pages/SolicitudesExtensionesPage';
+import { TiposTEPage } from '@/features/admin/pages/TiposTEPage';
+import { UsuarioDetallePage } from '@/features/admin/pages/UsuarioDetallePage';
+import { UsuariosPage } from '@/features/admin/pages/UsuariosPage';
+import { adminService } from '@/services/adminService';
 import { aprendizajeService } from '@/services/aprendizajeService';
 import { extensionesService } from '@/services/extensionesService';
 import { asesoriasService } from '@/services/asesoriasService';
@@ -45,7 +52,6 @@ import { RoleRoute } from './RoleRoute';
 import type { RouteHandle } from './types';
 
 const h = (crumb: RouteHandle['crumb']): RouteHandle => ({ crumb });
-const pendiente = (titulo: string) => <Proximamente titulo={titulo} />;
 
 const rutasProyectos: RouteObject = {
   path: 'proyectos',
@@ -174,16 +180,23 @@ const rutasAdmin: RouteObject = {
   element: <RoleRoute roles={['admin']} />,
   handle: h('Administración'),
   children: [
-    { index: true, element: pendiente('Panel de administración') },
-    { path: 'usuarios/*', handle: h('Usuarios'), element: pendiente('Gestión de usuarios') },
-    { path: 'tipos-te', handle: h('Tipos TE'), element: pendiente('Catálogo de tipos TE') },
-    { path: 'contenidos', handle: h('Contenidos'), element: pendiente('Contenidos de aprendizaje') },
-    { path: 'asesores', handle: h('Asesores'), element: pendiente('Gestión de asesores') },
+    { index: true, element: <AdminDashboardPage /> },
     {
-      path: 'solicitudes-extensiones',
-      handle: h('Solicitudes de extensiones'),
-      element: pendiente('Solicitudes de extensiones'),
+      path: 'usuarios',
+      handle: h('Usuarios'),
+      children: [
+        { index: true, element: <UsuariosPage /> },
+        {
+          path: ':id',
+          element: <UsuarioDetallePage />,
+          handle: h((p) => <AsyncCrumb key={p.id} cargar={() => adminService.obtenerUsuario(p.id!).then((u) => u.nombre)} />),
+        },
+      ],
     },
+    { path: 'tipos-te', handle: h('Tipos TE'), element: <TiposTEPage /> },
+    { path: 'contenidos', handle: h('Contenidos'), element: <ContenidosPage /> },
+    { path: 'asesores', handle: h('Asesores'), element: <AsesoresAdminPage /> },
+    { path: 'solicitudes-extensiones', handle: h('Solicitudes de extensiones'), element: <SolicitudesExtensionesPage /> },
   ],
 };
 
