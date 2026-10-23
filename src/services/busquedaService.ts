@@ -3,7 +3,7 @@ import type { Usuario } from '@/types/usuario';
 import { coincide } from '@/utils/texto';
 import { delay } from './mockDelay';
 
-export type GrupoBusqueda = 'Proyectos' | 'Páginas' | 'Usuarios';
+export type GrupoBusqueda = 'Proyectos' | 'Normativa' | 'Videos' | 'Páginas' | 'Usuarios';
 
 export interface ResultadoBusqueda {
   id: string;
@@ -60,6 +60,16 @@ export const busquedaService = {
       .slice(0, LIMITE_POR_GRUPO)
       .map((p) => ({ id: p.id, grupo: 'Proyectos', titulo: p.nombre, subtitulo: `${p.codigo} · ${p.comuna}`, to: `/proyectos/${p.id}` }));
 
-    return [...resProyectos, ...resPaginas, ...resUsuarios];
+    const resNormativa: ResultadoBusqueda[] = db.documentosNormativos
+      .filter((d) => coincide(consulta, d.codigo, d.titulo, d.descripcion))
+      .slice(0, LIMITE_POR_GRUPO)
+      .map((d) => ({ id: d.id, grupo: 'Normativa', titulo: `${d.codigo} · ${d.titulo}`, subtitulo: d.version, to: `/aprendizaje/pliegos/${d.id}` }));
+
+    const resVideos: ResultadoBusqueda[] = db.videos
+      .filter((v) => coincide(consulta, v.titulo, v.descripcion, v.autor))
+      .slice(0, LIMITE_POR_GRUPO)
+      .map((v) => ({ id: v.id, grupo: 'Videos', titulo: v.titulo, subtitulo: v.autor, to: `/aprendizaje/videos/${v.id}` }));
+
+    return [...resProyectos, ...resNormativa, ...resVideos, ...resPaginas, ...resUsuarios];
   },
 };

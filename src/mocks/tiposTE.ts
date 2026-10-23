@@ -37,7 +37,6 @@ export const tiposTESeed: TipoTE[] = [
       { id: 'chk-te1-4', texto: 'Puesta a tierra de protección medida y registrada' },
       { id: 'chk-te1-5', texto: 'Documentos en formato PDF legible' },
     ],
-    pliegosRic: ['ric-02', 'ric-03', 'ric-04', 'ric-05', 'ric-06', 'ric-10', 'ric-18', 'ric-19'],
     materialApoyo: [
       { titulo: 'Cómo preparar una declaración TE1 paso a paso', tipo: 'video', to: '/aprendizaje/videos/vid-01' },
       { titulo: 'Simbología eléctrica para planos', tipo: 'video', to: '/aprendizaje/videos/vid-03' },
@@ -74,7 +73,6 @@ export const tiposTESeed: TipoTE[] = [
       { id: 'chk-te2-3', texto: 'Certificados de ensayo de equipos MT' },
       { id: 'chk-te2-4', texto: 'Señalética de seguridad en sala eléctrica' },
     ],
-    pliegosRic: ['ric-06', 'ric-13', 'ric-14', 'ric-18', 'ric-19'],
     materialApoyo: [
       { titulo: 'Subestaciones particulares: conceptos clave', tipo: 'video', to: '/aprendizaje/videos/vid-04' },
       { titulo: 'Coordinación de protecciones', tipo: 'documento', to: '/aprendizaje/pliegos/ric-14' },
@@ -104,7 +102,6 @@ export const tiposTESeed: TipoTE[] = [
       { id: 'chk-te3-2', texto: 'Cálculo lumínico con software reconocido' },
       { id: 'chk-te3-3', texto: 'Autorización municipal cuando corresponda' },
     ],
-    pliegosRic: ['ric-04', 'ric-11', 'ric-18'],
     materialApoyo: [{ titulo: 'Fundamentos de cálculo de alumbrado', tipo: 'video', to: '/aprendizaje/videos/vid-05' }],
   },
   {
@@ -135,7 +132,6 @@ export const tiposTESeed: TipoTE[] = [
       { id: 'chk-te4-3', texto: 'Señalética de doble alimentación' },
       { id: 'chk-te4-4', texto: 'Respuesta de la distribuidora a la solicitud de conexión' },
     ],
-    pliegosRic: ['ric-05', 'ric-06', 'ric-09', 'ric-18', 'ric-19'],
     materialApoyo: [
       { titulo: 'Sistemas fotovoltaicos de autoconsumo', tipo: 'video', to: '/aprendizaje/videos/vid-02' },
       { titulo: 'Pliego RIC N°09 - Autogeneración', tipo: 'documento', to: '/aprendizaje/pliegos/ric-09' },
@@ -158,7 +154,6 @@ export const tiposTESeed: TipoTE[] = [
       { titulo: 'Diseño y declaración', descripcion: 'Diseña el alimentador dedicado y declara la instalación.' },
     ],
     requisitos: [{ id: 'chk-te6-1', texto: 'Cargador con certificación SEC' }],
-    pliegosRic: ['ric-15', 'ric-18'],
     materialApoyo: [],
   },
 ];

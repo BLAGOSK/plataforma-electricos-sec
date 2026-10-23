@@ -1,6 +1,8 @@
 import { useEffect, useState } from 'react';
 import { Link } from 'react-router-dom';
 import { BookOpen, ExternalLink, FileText, ListChecks, MessagesSquare, PlayCircle, Puzzle } from 'lucide-react';
+import { useAsync } from '@/hooks/useAsync';
+import { aprendizajeService } from '@/services/aprendizajeService';
 import { proyectosService } from '@/services/proyectosService';
 import type { MaterialApoyo } from '@/types/tipoTE';
 import { cn } from '@/utils/cn';
@@ -20,6 +22,10 @@ const iconosMaterial: Record<MaterialApoyo['tipo'], typeof FileText> = {
 export function ApoyoTab() {
   const { proyecto, tipoTE, documentos, soloLectura } = useProyectoDetalle();
   const [checklist, setChecklist] = useState<string[]>(proyecto.checklistApoyo);
+  const { data: pliegos = [] } = useAsync(
+    () => (tipoTE ? aprendizajeService.listarDocumentos({ tipoTEId: tipoTE.id, categoria: 'pliego_ric' }) : Promise.resolve([])),
+    [tipoTE?.id],
+  );
 
   useEffect(() => setChecklist(proyecto.checklistApoyo), [proyecto.checklistApoyo]);
 
@@ -74,9 +80,10 @@ export function ApoyoTab() {
               }
             />
             <CardBody className="grid gap-3 sm:grid-cols-2">
-              {tipoTE.pliegosRic.map((id) => (
-                <PliegoRicLink key={id} pliegoId={id} />
+              {pliegos.map((d) => (
+                <PliegoRicLink key={d.id} documento={d} />
               ))}
+              {pliegos.length === 0 && <p className="text-sm text-slate-500">No hay pliegos asociados a este tipo TE.</p>}
             </CardBody>
           </Card>
 

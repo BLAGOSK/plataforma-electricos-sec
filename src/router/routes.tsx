@@ -17,6 +17,11 @@ import { ProyectoDetallePage } from '@/features/proyectos/pages/ProyectoDetalleP
 import { ProyectoNuevoPage } from '@/features/proyectos/pages/ProyectoNuevoPage';
 import { ProyectosListPage } from '@/features/proyectos/pages/ProyectosListPage';
 import { AsyncCrumb } from '@/layouts/Breadcrumbs';
+import { BibliotecaPage } from '@/features/aprendizaje/pages/BibliotecaPage';
+import { PliegoDetallePage } from '@/features/aprendizaje/pages/PliegoDetallePage';
+import { VideoDetallePage } from '@/features/aprendizaje/pages/VideoDetallePage';
+import { VideosPage } from '@/features/aprendizaje/pages/VideosPage';
+import { aprendizajeService } from '@/services/aprendizajeService';
 import { documentosService } from '@/services/documentosService';
 import { proyectosService } from '@/services/proyectosService';
 import { ProtectedRoute, PublicOnlyRoute, SessionRoute } from './ProtectedRoute';
@@ -62,10 +67,24 @@ const rutasAprendizaje: RouteObject = {
   path: 'aprendizaje',
   handle: h('Aprendizaje'),
   children: [
-    { index: true, element: pendiente('Biblioteca normativa') },
-    { path: 'pliegos/:id', handle: h('Pliego'), element: pendiente('Pliego técnico') },
-    { path: 'videos', handle: h('Videos'), element: pendiente('Videos y material de apoyo') },
-    { path: 'videos/:id', handle: h('Video'), element: pendiente('Video') },
+    { index: true, element: <BibliotecaPage /> },
+    {
+      path: 'pliegos/:id',
+      element: <PliegoDetallePage />,
+      handle: h((p) => <AsyncCrumb key={p.id} cargar={() => aprendizajeService.obtenerDocumento(p.id!).then((d) => d.codigo)} />),
+    },
+    {
+      path: 'videos',
+      handle: h('Videos'),
+      children: [
+        { index: true, element: <VideosPage /> },
+        {
+          path: ':id',
+          element: <VideoDetallePage />,
+          handle: h((p) => <AsyncCrumb key={p.id} cargar={() => aprendizajeService.obtenerVideo(p.id!).then((v) => v.titulo)} />),
+        },
+      ],
+    },
   ],
 };
 

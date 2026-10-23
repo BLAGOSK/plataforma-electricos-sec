@@ -1,0 +1,218 @@
+/**
+ * Biblioteca normativa y videos de ejemplo.
+ * CONTENIDO REFERENCIAL A VALIDAR: títulos, versiones y relaciones con tipos TE
+ * son aproximaciones para la maqueta y deben contrastarse con las publicaciones oficiales de la SEC.
+ */
+import type { DocumentoNormativo, Video } from '@/types/aprendizaje';
+
+/** Relación pliego → tipos TE (fuente única; la usan Aprendizaje y el apoyo de proyectos). */
+const ricPorTE: Record<string, string[]> = {
+  'te-1': ['ric-02', 'ric-03', 'ric-04', 'ric-05', 'ric-06', 'ric-10', 'ric-18', 'ric-19'],
+  'te-2': ['ric-06', 'ric-13', 'ric-14', 'ric-18', 'ric-19'],
+  'te-3': ['ric-04', 'ric-11', 'ric-18'],
+  'te-4': ['ric-05', 'ric-06', 'ric-09', 'ric-18', 'ric-19'],
+  'te-6': ['ric-15', 'ric-18'],
+};
+
+const tiposDe = (pliegoId: string) =>
+  Object.entries(ricPorTE)
+    .filter(([, ids]) => ids.includes(pliegoId))
+    .map(([te]) => te);
+
+const titulosRic: Array<[string, string, string]> = [
+  ['01', 'Empalmes', 'Requisitos para el diseño y ejecución de empalmes en baja tensión.'],
+  ['02', 'Tableros eléctricos', 'Características constructivas, ubicación y protecciones de tableros.'],
+  ['03', 'Alimentadores y demanda de una instalación', 'Cálculo de demanda y dimensionamiento de alimentadores.'],
+  ['04', 'Conductores, materiales y sistemas de canalización', 'Tipos de conductores, capacidades de corriente y canalizaciones.'],
+  ['05', 'Medidas de protección contra tensiones peligrosas y descargas eléctricas', 'Protección contra contactos directos e indirectos.'],
+  ['06', 'Puesta a tierra y enlace equipotencial', 'Sistemas de puesta a tierra de protección y de servicio.'],
+  ['07', 'Instalaciones de equipos', 'Conexión de motores, equipos de climatización y otros equipos.'],
+  ['08', 'Sistemas de emergencia', 'Alumbrado de emergencia y respaldo de energía.'],
+  ['09', 'Sistemas de autogeneración', 'Generación para autoconsumo y su conexión a la instalación.'],
+  ['10', 'Instalaciones de uso general', 'Viviendas, oficinas y locales comerciales.'],
+  ['11', 'Instalaciones especiales', 'Piscinas, recintos médicos, ferias, alumbrado exterior y otros.'],
+  ['12', 'Instalaciones en ambientes explosivos', 'Clasificación de áreas y equipos en atmósferas explosivas.'],
+  ['13', 'Subestaciones y salas eléctricas', 'Diseño y seguridad de subestaciones y salas eléctricas.'],
+  ['14', 'Instalaciones de consumo en media tensión', 'Requisitos para instalaciones alimentadas en media tensión.'],
+  ['15', 'Infraestructura para la recarga de vehículos eléctricos', 'Instalaciones de carga de vehículos eléctricos.'],
+  ['16', 'Sistemas de almacenamiento de energía', 'Bancos de baterías y sistemas de almacenamiento.'],
+  ['17', 'Operación y mantenimiento', 'Obligaciones de operación y mantenimiento de las instalaciones.'],
+  ['18', 'Presentación de proyectos', 'Contenido y formato de planos, memorias y declaraciones.'],
+  ['19', 'Puesta en servicio', 'Inspecciones, pruebas y mediciones previas a la energización.'],
+];
+
+export const documentosNormativosSeed: DocumentoNormativo[] = [
+  ...titulosRic.map(([n, titulo, descripcion], i): DocumentoNormativo => ({
+    id: `ric-${n}`,
+    codigo: `RIC N°${n}`,
+    titulo,
+    descripcion,
+    categoria: 'pliego_ric',
+    version: n === '04' || n === '10' ? 'Ed. 2 (2023)' : 'Ed. 1 (2020)',
+    fecha: n === '04' || n === '10' ? '2023-03-01T00:00:00.000Z' : '2020-11-01T00:00:00.000Z',
+    tiposTE: tiposDe(`ric-${n}`),
+    archivo: {
+      id: `arc-ric-${n}`,
+      nombre: `pliego-ric-${n}.pdf`,
+      tipoMime: 'application/pdf',
+      tamano: 480_000 + i * 37_000,
+      url: `/mock-files/pliego-ric-${n}.pdf`,
+    },
+    referencial: true,
+    fechaActualizacion: '2026-01-10T12:00:00.000Z',
+  })),
+  {
+    id: 'norm-ds8',
+    codigo: 'DS N°8/2019',
+    titulo: 'Reglamento de seguridad de las instalaciones de consumo de energía eléctrica',
+    descripcion: 'Reglamento que establece los requisitos de seguridad que deben cumplir las instalaciones de consumo.',
+    categoria: 'reglamento',
+    version: 'Texto vigente',
+    fecha: '2020-01-01T00:00:00.000Z',
+    tiposTE: ['te-1', 'te-2', 'te-3', 'te-4', 'te-6'],
+    archivo: { id: 'arc-ds8', nombre: 'reglamento-ds8.pdf', tipoMime: 'application/pdf', tamano: 1_120_000, url: '/mock-files/reglamento-ds8.pdf' },
+    referencial: true,
+    fechaActualizacion: '2026-01-10T12:00:00.000Z',
+  },
+  {
+    id: 'inst-te1',
+    codigo: 'INST-TE1',
+    titulo: 'Instructivo de declaración TE1 en plataforma SEC',
+    descripcion: 'Paso a paso del ingreso de declaraciones de instalaciones de consumo en baja tensión.',
+    categoria: 'instructivo',
+    version: 'v2.1',
+    fecha: '2025-06-15T00:00:00.000Z',
+    tiposTE: ['te-1'],
+    archivo: { id: 'arc-inst-te1', nombre: 'instructivo-te1.pdf', tipoMime: 'application/pdf', tamano: 640_000, url: '/mock-files/instructivo-te1.pdf' },
+    referencial: true,
+    fechaActualizacion: '2026-02-01T12:00:00.000Z',
+  },
+  {
+    id: 'inst-te4',
+    codigo: 'INST-TE4',
+    titulo: 'Instructivo de comunicación de equipamiento de generación (TE4)',
+    descripcion: 'Requisitos y antecedentes para comunicar la puesta en servicio de sistemas de autogeneración.',
+    categoria: 'instructivo',
+    version: 'v1.4',
+    fecha: '2025-09-01T00:00:00.000Z',
+    tiposTE: ['te-4'],
+    archivo: { id: 'arc-inst-te4', nombre: 'instructivo-te4.pdf', tipoMime: 'application/pdf', tamano: 590_000, url: '/mock-files/instructivo-te4.pdf' },
+    referencial: true,
+    fechaActualizacion: '2026-02-01T12:00:00.000Z',
+  },
+  {
+    id: 'guia-simb',
+    codigo: 'GUIA-01',
+    titulo: 'Guía de simbología eléctrica para planos',
+    descripcion: 'Simbología recomendada para planos de instalaciones de consumo.',
+    categoria: 'guia',
+    version: '2024',
+    fecha: '2024-04-01T00:00:00.000Z',
+    tiposTE: ['te-1', 'te-2', 'te-3'],
+    archivo: { id: 'arc-guia-simb', nombre: 'guia-simbologia.pdf', tipoMime: 'application/pdf', tamano: 2_300_000, url: '/mock-files/guia-simbologia.pdf' },
+    referencial: true,
+    fechaActualizacion: '2026-03-01T12:00:00.000Z',
+  },
+  {
+    id: 'nch-2',
+    codigo: 'NCh Elec. 2/84',
+    titulo: 'Elaboración y presentación de proyectos (norma histórica)',
+    descripcion: 'Norma anterior al RIC, útil como referencia histórica para proyectos existentes.',
+    categoria: 'norma',
+    version: '1984',
+    fecha: '1984-01-01T00:00:00.000Z',
+    tiposTE: ['te-1'],
+    archivo: { id: 'arc-nch2', nombre: 'nch-elec-2-84.pdf', tipoMime: 'application/pdf', tamano: 870_000, url: '/mock-files/nch-elec-2-84.pdf' },
+    referencial: true,
+    fechaActualizacion: '2025-12-01T12:00:00.000Z',
+  },
+];
+
+const material = (id: string, nombre: string, url = '/mock-files/memoria-calculo-ejemplo.pdf') => ({
+  id,
+  nombre,
+  tipoMime: 'application/pdf',
+  tamano: 350_000,
+  url,
+});
+
+export const videosSeed: Video[] = [
+  {
+    id: 'vid-01',
+    titulo: 'Cómo preparar una declaración TE1 paso a paso',
+    descripcion:
+      'Recorrido completo por la preparación de una declaración TE1: antecedentes, planos, cuadro de cargas, memoria de cálculo e ingreso en el portal.',
+    categoria: 'tutorial',
+    duracionSeg: 1475,
+    autor: 'Equipo Eléctricos SEC',
+    fechaPublicacion: '2026-05-10T12:00:00.000Z',
+    tiposTE: ['te-1'],
+    materiales: [material('mat-01', 'checklist-declaracion-te1.pdf'), material('mat-02', 'plantilla-cuadro-cargas.pdf', '/mock-files/cuadro-cargas-ejemplo.pdf')],
+  },
+  {
+    id: 'vid-02',
+    titulo: 'Sistemas fotovoltaicos de autoconsumo: diseño y comunicación TE4',
+    descripcion: 'Dimensionamiento del arreglo, selección de inversor, protecciones CC/CA y antecedentes para la comunicación TE4.',
+    categoria: 'tutorial',
+    duracionSeg: 2310,
+    autor: 'Ing. Roberto Saavedra',
+    fechaPublicacion: '2026-06-02T12:00:00.000Z',
+    tiposTE: ['te-4'],
+    materiales: [material('mat-03', 'protocolo-pruebas-fv.pdf', '/mock-files/protocolo-pruebas-ejemplo.pdf')],
+  },
+  {
+    id: 'vid-03',
+    titulo: 'Simbología eléctrica para planos',
+    descripcion: 'Repaso de la simbología normalizada y buenas prácticas para planos claros y revisables.',
+    categoria: 'normativa',
+    duracionSeg: 845,
+    autor: 'Equipo Eléctricos SEC',
+    fechaPublicacion: '2026-03-18T12:00:00.000Z',
+    tiposTE: ['te-1', 'te-2', 'te-3'],
+    materiales: [material('mat-04', 'guia-simbologia.pdf', '/mock-files/guia-simbologia.pdf')],
+  },
+  {
+    id: 'vid-04',
+    titulo: 'Subestaciones particulares: conceptos clave',
+    descripcion: 'Webinar sobre diseño de subestaciones aéreas y de patio, coordinación de protecciones y mallas de tierra.',
+    categoria: 'webinar',
+    duracionSeg: 3620,
+    autor: 'Ing. Camila Herrera',
+    fechaPublicacion: '2026-07-22T12:00:00.000Z',
+    tiposTE: ['te-2'],
+    materiales: [],
+  },
+  {
+    id: 'vid-05',
+    titulo: 'Fundamentos de cálculo de alumbrado',
+    descripcion: 'Niveles de iluminación, método de lúmenes y uso de software de cálculo para interiores y exteriores.',
+    categoria: 'tutorial',
+    duracionSeg: 1920,
+    autor: 'Ing. Felipe Araya',
+    fechaPublicacion: '2026-08-05T12:00:00.000Z',
+    tiposTE: ['te-3'],
+    materiales: [],
+  },
+  {
+    id: 'vid-06',
+    titulo: 'Caso práctico: observaciones frecuentes en declaraciones',
+    descripcion: 'Análisis de las observaciones más comunes y cómo evitarlas en la presentación de proyectos.',
+    categoria: 'caso_practico',
+    duracionSeg: 1265,
+    autor: 'Equipo Eléctricos SEC',
+    fechaPublicacion: '2026-09-12T12:00:00.000Z',
+    tiposTE: ['te-1', 'te-4'],
+    materiales: [],
+  },
+  {
+    id: 'vid-07',
+    titulo: 'Puesta a tierra: medición con telurómetro',
+    descripcion: 'Procedimiento de medición de resistencia de puesta a tierra con el método de caída de potencial.',
+    categoria: 'tutorial',
+    duracionSeg: 1110,
+    autor: 'Ing. Roberto Saavedra',
+    fechaPublicacion: '2026-10-01T12:00:00.000Z',
+    tiposTE: ['te-1', 'te-2', 'te-4'],
+    materiales: [material('mat-05', 'formulario-medicion-pat.pdf', '/mock-files/protocolo-pruebas-ejemplo.pdf')],
+  },
+];

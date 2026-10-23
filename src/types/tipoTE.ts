@@ -34,8 +34,6 @@ export interface TipoTE {
   documentosRequeridos: DocumentoRequerido[];
   guia: PasoGuia[];
   requisitos: Array<{ id: ID; texto: string }>;
-  /** IDs de pliegos técnicos RIC aplicables (ver Aprendizaje) */
-  pliegosRic: ID[];
   materialApoyo: MaterialApoyo[];
 }
 
