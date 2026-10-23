@@ -8,6 +8,17 @@ import { LoginPage } from '@/features/auth/pages/LoginPage';
 import { PendienteValidacionPage } from '@/features/auth/pages/PendienteValidacionPage';
 import { RegistroPage } from '@/features/auth/pages/RegistroPage';
 import { InicioPage } from '@/features/dashboard/pages/InicioPage';
+import { ApoyoTab } from '@/features/proyectos/components/tabs/ApoyoTab';
+import { ControlDocumentalTab } from '@/features/proyectos/components/tabs/ControlDocumentalTab';
+import { DocumentosTab } from '@/features/proyectos/components/tabs/DocumentosTab';
+import { ResumenTab } from '@/features/proyectos/components/tabs/ResumenTab';
+import { DocumentoHistorialPage } from '@/features/proyectos/pages/DocumentoHistorialPage';
+import { ProyectoDetallePage } from '@/features/proyectos/pages/ProyectoDetallePage';
+import { ProyectoNuevoPage } from '@/features/proyectos/pages/ProyectoNuevoPage';
+import { ProyectosListPage } from '@/features/proyectos/pages/ProyectosListPage';
+import { AsyncCrumb } from '@/layouts/Breadcrumbs';
+import { documentosService } from '@/services/documentosService';
+import { proyectosService } from '@/services/proyectosService';
 import { ProtectedRoute, PublicOnlyRoute, SessionRoute } from './ProtectedRoute';
 import { RoleRoute } from './RoleRoute';
 import type { RouteHandle } from './types';
@@ -19,9 +30,31 @@ const rutasProyectos: RouteObject = {
   path: 'proyectos',
   handle: h('Proyectos'),
   children: [
-    { index: true, element: pendiente('Proyectos') },
-    { path: 'nuevo', handle: h('Nuevo proyecto'), element: pendiente('Nuevo proyecto') },
-    { path: ':id/*', handle: h('Proyecto'), element: pendiente('Detalle del proyecto') },
+    { index: true, element: <ProyectosListPage /> },
+    { path: 'nuevo', handle: h('Nuevo proyecto'), element: <ProyectoNuevoPage /> },
+    {
+      path: ':id',
+      element: <ProyectoDetallePage />,
+      handle: h((p) => <AsyncCrumb key={p.id} cargar={() => proyectosService.obtener(p.id!).then((x) => x.nombre)} />),
+      children: [
+        { index: true, element: <Navigate to="resumen" replace /> },
+        { path: 'resumen', handle: h('Resumen'), element: <ResumenTab /> },
+        {
+          path: 'documentos',
+          handle: h('Documentos'),
+          children: [
+            { index: true, element: <DocumentosTab /> },
+            {
+              path: ':docId',
+              element: <DocumentoHistorialPage />,
+              handle: h((p) => <AsyncCrumb key={p.docId} cargar={() => documentosService.obtener(p.docId!).then((d) => d.nombre)} />),
+            },
+          ],
+        },
+        { path: 'control-documental', handle: h('Control documental'), element: <ControlDocumentalTab /> },
+        { path: 'apoyo', handle: h('Apoyo al eléctrico'), element: <ApoyoTab /> },
+      ],
+    },
   ],
 };
 

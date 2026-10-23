@@ -3,7 +3,7 @@ import type { Usuario } from '@/types/usuario';
 import { coincide } from '@/utils/texto';
 import { delay } from './mockDelay';
 
-export type GrupoBusqueda = 'Páginas' | 'Usuarios';
+export type GrupoBusqueda = 'Proyectos' | 'Páginas' | 'Usuarios';
 
 export interface ResultadoBusqueda {
   id: string;
@@ -54,6 +54,12 @@ export const busquedaService = {
           .map((u) => ({ id: u.id, grupo: 'Usuarios', titulo: u.nombre, subtitulo: `${u.rut} · ${u.email}`, to: `/admin/usuarios/${u.id}` }))
       : [];
 
-    return [...resPaginas, ...resUsuarios];
+    const resProyectos: ResultadoBusqueda[] = db.proyectos
+      .filter((p) => esAdmin || p.usuarioId === usuario.id)
+      .filter((p) => coincide(consulta, p.nombre, p.codigo, p.cliente.nombre, p.comuna))
+      .slice(0, LIMITE_POR_GRUPO)
+      .map((p) => ({ id: p.id, grupo: 'Proyectos', titulo: p.nombre, subtitulo: `${p.codigo} · ${p.comuna}`, to: `/proyectos/${p.id}` }));
+
+    return [...resProyectos, ...resPaginas, ...resUsuarios];
   },
 };

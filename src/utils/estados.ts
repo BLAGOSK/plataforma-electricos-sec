@@ -4,6 +4,7 @@
  */
 import type { BadgeColor } from '@/components/ui/Badge';
 import type { EstadoExtension } from '@/types/extension';
+import type { EstadoProyecto } from '@/types/proyecto';
 import type { EstadoUsuario } from '@/types/usuario';
 
 export interface InfoEstado {
@@ -25,9 +26,20 @@ export const estadosExtension: Record<EstadoExtension, InfoEstado> = {
   rechazada: { label: 'Rechazada', color: 'red' },
 };
 
+export const estadosProyecto: Record<EstadoProyecto, InfoEstado> = {
+  borrador: { label: 'Borrador', color: 'gray' },
+  en_desarrollo: { label: 'En desarrollo', color: 'blue' },
+  listo_para_declarar: { label: 'Listo para declarar', color: 'yellow' },
+  declarado: { label: 'Declarado', color: 'green' },
+};
+
+/** Orden del flujo de un proyecto. */
+export const flujoProyecto: EstadoProyecto[] = ['borrador', 'en_desarrollo', 'listo_para_declarar', 'declarado'];
+
 export const dominiosEstado = {
   usuario: estadosUsuario,
   extension: estadosExtension,
+  proyecto: estadosProyecto,
 };
 
 export type DominioEstado = keyof typeof dominiosEstado;

@@ -3,11 +3,17 @@
  * acciones de la demo (aprobar usuarios, subir revisiones, etc.) se mantengan
  * al navegar o recargar. SOLO la usan los archivos de src/services.
  */
+import type { Documento } from '@/types/documento';
 import type { SolicitudExtension, Extension } from '@/types/extension';
 import type { Notificacion } from '@/types/notificacion';
+import type { Proyecto } from '@/types/proyecto';
+import type { TipoTE } from '@/types/tipoTE';
 import type { PreferenciasNotificacion, Usuario } from '@/types/usuario';
+import { documentosSeed } from './documentos';
 import { extensionesSeed, solicitudesExtensionSeed } from './extensiones';
 import { notificacionesSeed } from './notificaciones';
+import { proyectosSeed } from './proyectos';
+import { tiposTESeed } from './tiposTE';
 import { credencialesSeed, usuariosSeed } from './usuarios';
 
 export interface MockDb {
@@ -18,6 +24,9 @@ export interface MockDb {
   notificaciones: Notificacion[];
   extensiones: Extension[];
   solicitudesExtension: SolicitudExtension[];
+  tiposTE: TipoTE[];
+  proyectos: Proyecto[];
+  documentos: Documento[];
 }
 
 const STORAGE_KEY = 'sec-demo-db-v1';
@@ -30,6 +39,9 @@ function crearSeed(): MockDb {
     notificaciones: notificacionesSeed,
     extensiones: extensionesSeed,
     solicitudesExtension: solicitudesExtensionSeed,
+    tiposTE: tiposTESeed,
+    proyectos: proyectosSeed,
+    documentos: documentosSeed,
   });
 }
 
