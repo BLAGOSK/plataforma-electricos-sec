@@ -1,5 +1,6 @@
 import { Outlet } from 'react-router-dom';
 import { BookOpen, FolderKanban, ShieldCheck, Users } from 'lucide-react';
+import { DETALLE_BUILD, ETIQUETA_VERSION } from '@/utils/version';
 import { Logo } from './Logo';
 
 const beneficios = [
@@ -37,8 +38,8 @@ export function AuthLayout() {
             ))}
           </ul>
         </div>
-        <p className="relative text-xs text-brand-300/70">
-          Maqueta navegable · Fase 1 · Los datos mostrados son simulados.
+        <p className="relative text-xs text-brand-300/70" title={DETALLE_BUILD}>
+          {ETIQUETA_VERSION} · Los datos mostrados son simulados.
         </p>
       </aside>
 

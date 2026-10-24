@@ -1,8 +1,10 @@
 import { Controller, Get, HttpStatus, Res } from '@nestjs/common';
 import { ApiOperation, ApiTags } from '@nestjs/swagger';
+import { FASE_ACTUAL } from '@electricos/shared';
 import type { Response } from 'express';
 import { PrismaService } from '../../prisma/prisma.service';
 import { StorageService } from '../../storage/storage.service';
+import { VERSION_API } from '../../version';
 
 type EstadoComponente = 'ok' | 'error';
 
@@ -34,7 +36,8 @@ export class HealthController {
     return {
       estado: ok ? 'ok' : 'degradado',
       componentes: { baseDatos, almacenamiento },
-      version: process.env.npm_package_version ?? '0.2.0',
+      version: VERSION_API,
+      fase: FASE_ACTUAL,
       uptimeSeg: Math.round(process.uptime()),
     };
   }

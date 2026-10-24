@@ -50,7 +50,7 @@ export function CatalogoPage() {
         icon={Puzzle}
       />
 
-      <Alert tipo="info" className="mb-6" titulo="Fase 1 · Maqueta">
+      <Alert tipo="info" className="mb-6" titulo="Herramientas en maqueta">
         Las herramientas muestran formularios de entrada y resultados de ejemplo. Los cálculos reales se implementarán en una fase posterior.
       </Alert>
 

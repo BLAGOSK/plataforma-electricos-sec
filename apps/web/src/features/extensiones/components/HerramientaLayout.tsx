@@ -51,11 +51,11 @@ export function HerramientaLayout({ entradas, resultados, proyectoNombre, anchoE
             calculado && (
               <>
                 {proyectoNombre && (
-                  <Button size="sm" variant="secondary" icon={FolderInput} onClick={() => toast.info('Función disponible en la Fase 2', `El resultado se adjuntará al proyecto "${proyectoNombre}".`)}>
+                  <Button size="sm" variant="secondary" icon={FolderInput} onClick={() => toast.info('Función disponible próximamente', `El resultado se adjuntará al proyecto "${proyectoNombre}".`)}>
                     Guardar en proyecto
                   </Button>
                 )}
-                <Button size="sm" variant="outline" icon={FileDown} onClick={() => toast.info('Función disponible en la Fase 2', 'Exportación de la memoria de cálculo a PDF.')}>
+                <Button size="sm" variant="outline" icon={FileDown} onClick={() => toast.info('Función disponible próximamente', 'Exportación de la memoria de cálculo a PDF.')}>
                   Exportar
                 </Button>
               </>
@@ -66,7 +66,7 @@ export function HerramientaLayout({ entradas, resultados, proyectoNombre, anchoE
           {calculado ? (
             <div className="space-y-5">
               <Alert tipo="alerta">
-                <strong>Resultados de ejemplo.</strong> En la Fase 1 no se realizan cálculos reales; los valores son ilustrativos.
+                <strong>Resultados de ejemplo.</strong> Los cálculos reales se implementarán en una fase posterior; los valores son ilustrativos.
               </Alert>
               {resultados}
             </div>
