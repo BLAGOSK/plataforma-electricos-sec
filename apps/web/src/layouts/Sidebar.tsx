@@ -6,6 +6,7 @@ import { useAsync } from '@/hooks/useAsync';
 import { extensionesService } from '@/services/extensionesService';
 import { useVersion } from '@/services/eventos';
 import { cn } from '@/utils/cn';
+import { DETALLE_BUILD, ETIQUETA_VERSION } from '@/utils/version';
 import { Logo } from './Logo';
 import { navAdmin, navConfiguracion, navExtensiones, navPrincipal, type ItemNav } from './navegacion';
 
@@ -110,8 +111,8 @@ export function Sidebar({ abiertoMovil, onCerrar }: SidebarProps) {
         )}
       </nav>
 
-      <div className="border-t border-white/10 px-5 py-4 text-[11px] text-brand-300/70">
-        Maqueta Fase 1 · datos simulados
+      <div className="border-t border-white/10 px-5 py-4 text-[11px] text-brand-300/70" title={DETALLE_BUILD}>
+        {ETIQUETA_VERSION} · datos simulados
       </div>
     </div>
   );

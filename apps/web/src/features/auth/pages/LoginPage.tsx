@@ -94,7 +94,7 @@ export function LoginPage() {
         <div className="flex justify-end">
           <button
             type="button"
-            onClick={() => setError('Recuperación de contraseña disponible en la Fase 2 (requiere envío de correo).')}
+            onClick={() => setError('Recuperación de contraseña disponible próximamente (requiere envío de correo).')}
             className="text-sm font-medium text-brand-700 hover:text-brand-800"
           >
             ¿Olvidaste tu contraseña?
